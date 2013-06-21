@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=kamailio4
-PKG_VERSION:=4.0.1
+PKG_VERSION:=4.0.2
 PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=http://www.kamailio.org/pub/kamailio/$(PKG_VERSION)/src/
 PKG_SOURCE:=kamailio-$(PKG_VERSION)$(PKG_VARIANT)_src.tar.gz
-PKG_MD5SUM:=ab57fcb1eb1195fa45f5c0935810e42a
+PKG_MD5SUM:=012f1a0f288434549ad54ea2c5c3fa7a
 
 INCL_MODULES:=
 KAM_MODULES:=
@@ -30,6 +30,7 @@ define Package/kamailio4/Default
   CATEGORY:=Network
   SUBMENU:=Telephony
   URL:=http://www.kamailio.org/
+  MAINTAINER:=Jiri Slachta <slachta@cesnet.cz>
   DEPENDS:=$(ICONV_DEPENDS) +libncurses +libpthread +libreadline +libxml2
 endef
 
