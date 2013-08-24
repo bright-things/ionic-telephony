@@ -19,7 +19,7 @@ PKG_VERSION:=1.5.5b
 # http://fisheye.freeswitch.org
 #
 PKG_SOURCE_URL:=git://git.$(PKG_NAME).org/$(PKG_NAME).git
-FS_DEFAULT_HEAD:=451aece80391bf08bc0e8b25fce2e2cb4f88bc41
+FS_DEFAULT_HEAD:=dbfde499a42b4f72eaf5578da2ebc741b85dedb3
 FS_LATEST_HEAD:=$(if $(DUMP),$(FS_DEFAULT_HEAD),$(shell git ls-remote $(PKG_SOURCE_URL) HEAD | cut -f1))
 PKG_SOURCE_VERSION:=$(if $(CONFIG_FS_WITH_PULL_CURRENT),$(FS_LATEST_HEAD),$(FS_DEFAULT_HEAD))
 PKG_SOURCE_VERSION_SHORT:=$(shell echo $(PKG_SOURCE_VERSION)|cut -b -7)
@@ -227,7 +227,7 @@ define Package/$(PKG_NAME)/config
 	or send in your patches.
 
     config FS_WITH_ALSA
-    depends on PACKAGE_$(PKG_NAME)
+    depends on PACKAGE_$(PKG_NAME) && PACKAGE_alsa-lib
     bool "Enable ALSA for sound support"
     default n
     help
@@ -382,7 +382,6 @@ $(call Package/$(PKG_NAME)/Default)
 		+$(PKG_NAME)-mod-native-file \
 		+$(PKG_NAME)-mod-sndfile \
 		+$(PKG_NAME)-mod-sofia \
-		+$(PKG_NAME)-mod-spandsp \
 		+$(PKG_NAME)-mod-speex \
 		+$(PKG_NAME)-mod-syslog \
 		+$(PKG_NAME)-mod-tone-stream \
@@ -977,7 +976,7 @@ $(eval $(call BuildPackage,$(PKG_NAME)-config-minimal))
 # $(eval $(call BuildPlugin,Name,Title,Selection on module Conf File,Files,Inter Depends,Extra Depends))
 #
 $(eval $(call BuildPlugin,abstraction,An Abstraction To API Call,vanilla,,,,))
-$(eval $(call BuildPlugin,alsa,Alsa Endpoint,vanilla,,,,+alsa-lib @FS_WITH_ALSA))
+$(eval $(call BuildPlugin,alsa,Alsa Endpoint,vanilla,,,,+FS_WITH_ALSA:alsa-lib @FS_WITH_ALSA))
 $(eval $(call BuildPlugin,amr,Adaptive Multi-Rate On Bandwidth Codec,vanilla,,,,))
 $(eval $(call BuildPlugin,amrwb,Wide Band AMR,vanilla,,,,))
 $(eval $(call BuildPlugin,avmd,Advanced Voice Mail Detection,vanilla,,,,))
@@ -1020,7 +1019,7 @@ $(eval $(call BuildPlugin,fsk,Bell-202 1200-Baud FSK Decoder,vanilla,,,,))
 $(eval $(call BuildPlugin,fsv,Video Player / Recorder,vanilla,,,,))
 $(eval $(call BuildPlugin,g723-1,G.723.1 Codec,vanilla,,,,))
 $(eval $(call BuildPlugin,g729,G.729 Codec,vanilla,,,,))
-$(eval $(call BuildPlugin,gsmopen,GSM Modem compatible Endpoint,mod,,,alsa,+alsa-lib @FS_WITH_ALSA @BROKEN)) # needs gsmlib
+$(eval $(call BuildPlugin,gsmopen,GSM Modem compatible Endpoint,mod,,,alsa,+FS_WITH_ALSA:alsa-lib @FS_WITH_ALSA @BROKEN)) # needs gsmlib
 $(eval $(call BuildPlugin,h26x,H26X Linear Codec,vanilla,,,,))
 $(eval $(call BuildPlugin,h323,H323 Endpoint,mod,,,,@BROKEN)) # Req. H323Plus v1.24.x or newer
 $(eval $(call BuildPlugin,hash,API For Manipulating A Hash Table,vanilla,,,,))
@@ -1044,8 +1043,8 @@ $(eval $(call BuildPlugin,nibblebill,Credit / Debit Billing,vanilla,,,,))
 $(eval $(call BuildPlugin,openzap,Zaptel (Superseded by FreeTDM),libs,ozmod,lib/libopenzap lib/pkgconfig/openzap,,+libpcap))
 $(eval $(call BuildPlugin,opus,Opus CoDec,vanilla,,,,))
 $(eval $(call BuildPlugin,oreka,Media Recording with Oreka,vanilla,,,,))
-$(eval $(call BuildPlugin,portaudio,Portaudio To Sound Card Interface,vanilla,,,alsa,+alsa-lib @FS_WITH_ALSA))
-$(eval $(call BuildPlugin,portaudio-stream,Portaudio Streaming Interface,vanilla,,,alsa,+alsa-lib @FS_WITH_ALSA))
+$(eval $(call BuildPlugin,portaudio,Portaudio To Sound Card Interface,vanilla,,,alsa,+FS_WITH_ALSA:alsa-lib @FS_WITH_ALSA))
+$(eval $(call BuildPlugin,portaudio-stream,Portaudio Streaming Interface,vanilla,,,alsa,+FS_WITH_ALSA:alsa-lib @FS_WITH_ALSA))
 $(eval $(call BuildPlugin,posix-timer,POSIX Compliant Soft Timer,vanilla,,,,))
 $(eval $(call BuildPlugin,radius-cdr,Radius-CDR interface,vanilla,,,,@BROKEN)) # fails in freeradius-client
 $(eval $(call BuildPlugin,rayo,Rayo server & node implementation,vanilla,,,,))
@@ -1079,7 +1078,7 @@ $(eval $(call BuildPlugin,snmp,SNMP AgentX Subagent,vanilla,,,,+libnetsnmp))
 $(eval $(call BuildPlugin,snom,SNOM specific features,vanilla,,,,))
 $(eval $(call BuildPlugin,sofia,SOFIA SIP,mod,,,,)) # ~/conf
 $(eval $(call BuildPlugin,sonar,Sonar Ping Timer,vanilla,,,,))
-$(eval $(call BuildPlugin,spandsp,Span DSP,mod,,,,+libjpeg)) # ~/conf
+$(eval $(call BuildPlugin,spandsp,Span DSP,mod,,,,+libjpeg +FS_WITH_LZMA:liblzma @FS_WITH_LZMA)) # ~/conf
 $(eval $(call BuildPlugin,speex,Speex codec,mod,,,,))
 $(eval $(call BuildPlugin,spidermonkey,JavaScript,vanilla,,,,@BROKEN)) # fails in js
 $(eval $(call BuildPlugin,spidermonkey-core_db,JavaScript DB,vanilla,,,,@BROKEN))
