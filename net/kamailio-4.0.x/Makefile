@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=kamailio4
 PKG_VERSION:=4.0.4
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_URL:=http://www.kamailio.org/pub/kamailio/$(PKG_VERSION)/src/
 PKG_SOURCE:=kamailio-$(PKG_VERSION)$(PKG_VARIANT)_src.tar.gz
@@ -185,6 +185,7 @@ $(eval $(call BuildPlugin,registrar,registrar,SIP Registrar,usrloc,))
 $(eval $(call BuildPlugin,rls,rls,Resource List Server,presence pua tm,+libxml2))
 $(eval $(call BuildPlugin,rr,rr,Record-Route and Route,,))
 $(eval $(call BuildPlugin,rtimer,rtimer,Routing Timer,,))
+$(eval $(call BuildPlugin,rtpproxy,rtpproxy,RTP proxy,tm,))
 $(eval $(call BuildPlugin,sanity,sanity,SIP sanity checks,sl,))
 $(eval $(call BuildPlugin,sipcapture,sipcapture,SIP capture,,))
 $(eval $(call BuildPlugin,siptrace,siptrace,SIP trace,,))
@@ -211,22 +212,21 @@ $(eval $(call BuildPlugin,xlog,xlog,Advanced logger,,))
 $(eval $(call BuildPlugin,xmpp,xmpp,SIP-to-XMPP Gateway,tm,+libexpat))
 
 PKG_MAKE_ARGS:= \
-	cfg-dir="/etc/kamailio/" \
-	bin-dir="/usr/sbin/" \
-	data-dir="/var/lib/kamailio/" \
-	lib-dir="/usr/lib/kamailio/" \
-	modules-dir="/usr/lib/kamailio/modules/" \
+	prefix=/ \
+	cfg_dir=/etc/kamailio/ \
+	bin_dir=/usr/sbin/ \
+	data_dir=/var/lib/kamailio/ \
+	lib_dir=/usr/lib/kamailio/ \
+	modules_dir=/usr/lib/kamailio/ \
 	include_modules="$(INCL_MODULES)" \
+	cfg_target:=/etc/kamailio/ \
 	TLS_HOOKS=1 \
 	extra_defs="-DUSE_PTHREAD_MUTEX " \
 	CFLAGS="$(TARGET_CFLAGS)" \
-	ISSMP="no" \
 	LOCALBASE="$(STAGING_DIR)/usr" \
 	SYSBASE="$(STAGING_DIR)/usr" \
 	PCREDEFS:="$(TARGET_CPPFLAGS)" \
 	PCRELIBS:="$(TARGET_LDFLAGS)" \
-	cfg_target:=/etc/kamailio/ \
-	PREFIX:=/usr \
 	CROSS_COMPILE=$(TARGET_CROSS) \
 	CC="$(TARGET_CC)" \
 	ARCH="$(ARCH)"  \
@@ -234,15 +234,11 @@ PKG_MAKE_ARGS:= \
 	quiet=verbose
 
 define Build/Compile
-	if ! [ -f $(PREBUILT_STAMP) ]; then \
-		echo $(MAKE) -C $(PKG_BUILD_DIR) $(PKG_MAKE_ARGS) \
-		EXTRA_LIBS=-L$(STAGING_DIR)/usr/lib/ prefix:=/usr \
-		all && touch $(PREBUILT_STAMP); \
-	fi
-	$(MAKE) -C $(PKG_BUILD_DIR) $(PKG_MAKE_ARGS) prefix=/ \
-		install-cfg
-	$(MAKE) -C $(PKG_BUILD_DIR) $(PKG_MAKE_ARGS) prefix=/usr \
-		install-bin install-modules-all install-utils
+	$(MAKE) -C $(PKG_BUILD_DIR) $(PKG_MAKE_ARGS) \
+		EXTRA_LIBS=-L$(STAGING_DIR)/usr/lib/ \
+		all
+	$(MAKE) -C $(PKG_BUILD_DIR) $(PKG_MAKE_ARGS) \
+		install
 endef
 
 $(eval $(call BuildPackage,kamailio4))

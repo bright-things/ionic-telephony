@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2011 OpenWrt.org
+# Copyright (C) 2006-2013 OpenWrt.org
 # Copyright (C) 2006-2011 SMBPhone
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -9,15 +9,15 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/uclibc++.mk
 
-RELEASEVER:=3.2.0
+RELEASEVER:=5.0.0
 
 PKG_NAME:=yate
 PKG_VERSION:=$(RELEASEVER)-1
-PKG_RELEASE:=3
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://yate.null.ro/tarballs/yate3/
-PKG_MD5SUM:=8ef5f0c420cb41ad2b5828fdba28c4ee
+PKG_SOURCE_URL:=http://yate.null.ro/tarballs/yate5/
+PKG_MD5SUM:=6113bce2b81b402431c61d1f777e09a6
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 PKG_INSTALL:=1
@@ -40,6 +40,7 @@ endef
 
 define Package/$(PKG_NAME)/conffiles
 /etc/yate/yate.conf
+/etc/init.d/yate
 endef
 
 define Package/$(PKG_NAME)/Default/description
@@ -88,30 +89,49 @@ endef
 TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include $(if $(CONFIG_BIG_ENDIAN),-DBIGENDIAN,)
 
 CONFIGURE_ARGS+= \
+	--enable-strings \
+	--enable-poll \
+	--enable-inline \
+	--enable-atomics \
+	--disable-sse2 \
+	--disable-sctp \
+	--enable-resolver \
+	--enable-internalregex \
+	--disable-dahdi \
+	--disable-zaptel \
+	--disable-wpcard \
+	--disable-tdmcard \
+	--disable-wanpipe \
+	--enable-ilbc \
+	--enable-ilbc-webrtc \
+	--enable-isac-float \
+	--disable-isac-fixed \
+	--enable-rtti \
+	--with-libpq="$(STAGING_DIR)/usr" \
+	--with-mysql="$(STAGING_DIR)/usr" \
+	--without-wphwec \
+	--with-libgsm="$(STAGING_DIR)/usr/include/gsm" \
+	--with-libspeex="$(STAGING_DIR)/usr/include" \
+	--without-amrnb \
+	--with-spandsp="$(STAGING_DIR)/usr/include" \
+	--without-pwlib \
+	--without-openh323 \
+	--with-openssl="$(STAGING_DIR)/usr" \
+	--with-zlib="$(STAGING_DIR)/usr" \
 	--without-libqt4 \
 	--without-qtstatic \
-	--without-pwlib	\
 	--without-coredumper \
 	--without-doxygen \
-	--without-kdoc \
-	--with-spandsp="$(STAGING_DIR)/usr/include" \
-	--with-libgsm="$(STAGING_DIR)/usr/include/gsm" \
-	--with-mysql="$(STAGING_DIR)/usr" \
-	--with-openssl="$(STAGING_DIR)/usr" \
-	--with-libpq="$(STAGING_DIR)/usr" \
-	--with-libspeex="$(STAGING_DIR)/usr/include/speex" \
-	--with-zaptel="$(STAGING_DIR)/usr/include" \
-	--with-zlib="$(STAGING_DIR)/usr"
+	--without-kdoc
 
 CONFIGURE_VARS+= \
-	CFLAGS="$$$$CFLAGS -nostdinc++" \
 	LDFLAGS="$$$$LDFLAGS -nodefaultlibs" \
 	LIBS="-lc -luClibc++ -lpthread -lresolv -ldl -lm -lc $(LIBGCC_S)"
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib
 	
-	for yatelib in "" sig mgcp jabber; do \
+	for yatelib in "" sig mgcp jabber script; do \
 		$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/lib/libyate$$$${yatelib}.so.$(RELEASEVER) $(1)/usr/lib ;\
 		$(LN) ./libyate$$$${yatelib}.so.$(RELEASEVER) $(1)/usr/lib/libyate$$$${yatelib}.so ;\
 	done
@@ -119,7 +139,9 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/yate $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/$(PKG_NAME)
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/etc/yate/yate.conf	 $(1)/etc/$(PKG_NAME)/yate.conf
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/etc/yate/yate.conf $(1)/etc/$(PKG_NAME)/yate.conf
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/yate.init $(1)/etc/init.d/yate
 endef
 
 define Package/$(PKG_NAME)-scripts-php/install
@@ -205,11 +227,13 @@ $(eval $(call BuildPlugin,amrnbcodec,,AMR-NB Codec,@BROKEN)) # Missing amr-nb li
 $(eval $(call BuildPlugin,analog,server,Analog (e.g. POTS) Channel,))
 $(eval $(call BuildPlugin,analogdetect,server,Analog Data Detector,))
 $(eval $(call BuildPlugin,analyzer,,Test Call Generator and AQ Analyzer,))
+$(eval $(call BuildPlugin,cache,server,CNAM and LNP memory caches,))
 $(eval $(call BuildPlugin,callcounters,server,Count Active Call Legs,))
 $(eval $(call BuildPlugin,callfork,,Call Forker,))
 $(eval $(call BuildPlugin,callgen,,Call Generator,))
 $(eval $(call BuildPlugin,ccongestion,server,Accept Status from Installed Engine Monitors,))
 $(eval $(call BuildPlugin,cdrbuild,,Call Detail Record Builder,))
+$(eval $(call BuildPlugin,cdrcombine,,Call Detail Records per call instead of per call leg,))
 $(eval $(call BuildPlugin,cdrfile,,Call Detail Record to File,))
 $(eval $(call BuildPlugin,ciscosm,server,SS7 Support,))
 $(eval $(call BuildPlugin,clustering,server,Clustering Server Support,))
@@ -219,19 +243,24 @@ $(eval $(call BuildPlugin,dbpbx,server,PBX IVR and Multi-routing from Database,)
 $(eval $(call BuildPlugin,dbwave,server,Wav Media for DB Storage,+$(PKG_NAME)-mod-wavefile))
 $(eval $(call BuildPlugin,dumbchan,,Dummy Channel,))
 $(eval $(call BuildPlugin,enumroute,,ENUM Routing,))
+$(eval $(call BuildPlugin,eventlogs,server,Write events and alarms to log files,))
 $(eval $(call BuildPlugin,extmodule,,External Module Handler,))
 $(eval $(call BuildPlugin,faxchan,,Spandsp Fax Channel,+libspandsp))
 $(eval $(call BuildPlugin,filetransfer,,File Transfer Driver,))
 $(eval $(call BuildPlugin,gsmcodec,,GSM Codec,+libgsm))
+$(eval $(call BuildPlugin,gvoice,,Google Voice support,))
 $(eval $(call BuildPlugin,h323chan,,Open H.323 Channel,+libopenh323 @BROKEN)) # libopenh323 doesn't create package or stagin_dir includes or libs
 $(eval $(call BuildPlugin,heartbeat,server,Linux-HA compatible heartbeat,))
 $(eval $(call BuildPlugin,ilbccodec,,iLBC Codec,))
-$(eval $(call BuildPlugin,isupmangler,server,ISUP paramter mangling in a STP,))
+$(eval $(call BuildPlugin,ilbcwebrtc,,iLBC Codec from the WebRTC project,))
+$(eval $(call BuildPlugin,isaccodec,,internet Speech Audio Codec,))
+$(eval $(call BuildPlugin,isupmangler,sig,ISUP parameter mangling in a STP,))
 $(eval $(call BuildPlugin,jabberclient,client,Jabber Client,))
 $(eval $(call BuildPlugin,jabberserver,jabber,Jabber Server,))
+$(eval $(call BuildPlugin,javascript,,Routing using the embedded Javascript language,))
 $(eval $(call BuildPlugin,jbfeatures,jabber,Jabber Server Features,))
 $(eval $(call BuildPlugin,lateroute,server,Last Chance Routing,))
-$(eval $(call BuildPlugin,lksctp,server,SCTP sockets using linux kernel,@BROKEN)) # Missing libraries/header files
+$(eval $(call BuildPlugin,lksctp,server,SCTP sockets using linux kernel,@BROKEN))
 $(eval $(call BuildPlugin,mgcpca,server,Media Gateway Control Protocol Agent,))
 $(eval $(call BuildPlugin,mgcpgw,server,Media Gateway Control Protocol Gateway,))
 $(eval $(call BuildPlugin,moh,,On Hold (music) Generator,))
@@ -247,13 +276,14 @@ $(eval $(call BuildPlugin,pbx,,PBX Message Handlers,))
 $(eval $(call BuildPlugin,pbxassist,server,Full featured PBX and IVR,))
 $(eval $(call BuildPlugin,pgsqldb,server,PostgrestSQL Backend DB,+libpq))
 $(eval $(call BuildPlugin,presence,server,Presence,))
-$(eval $(call BuildPlugin,regfile,server,Registration based on users in file,))
 $(eval $(call BuildPlugin,queues,server,Call Distribution and Queues from Database,))
 $(eval $(call BuildPlugin,queuesnotify,server,Notify when queued call status changes,))
 $(eval $(call BuildPlugin,regexroute,,Regular Expression Based Routing,))
+$(eval $(call BuildPlugin,regfile,server,Registration based on users in file,))
+$(eval $(call BuildPlugin,register,server,Call Detail Record to a database,))
 $(eval $(call BuildPlugin,rmanager,,Yate Remote Management,))
-$(eval $(call BuildPlugin,sip_cnam_lnp,sip,Query CNAM and LNP databases using SIP INVITE,))
 $(eval $(call BuildPlugin,sigtransport,server,SIGTRAN (SS7 over IP) connection provider,))
+$(eval $(call BuildPlugin,sip_cnam_lnp,sip,Query CNAM and LNP databases using SIP INVITE,))
 $(eval $(call BuildPlugin,sipfeatures,server,SIP Features (SUBSCRIBE/NOTIFY),))
 $(eval $(call BuildPlugin,speexcodec,,Speex Codec,+libspeex))
 $(eval $(call BuildPlugin,subscription,server,Subcription handler and presence notifier,))
@@ -265,12 +295,12 @@ $(eval $(call BuildPlugin,wavefile,,Wav file Record and Playback,))
 $(eval $(call BuildPlugin,wpcard,server,Wanpipe PRI cards Signalling and Data Driver,@BROKEN)) # Mising wanpipe and PRI libraries
 $(eval $(call BuildPlugin,yiaxchan,,IAX Channel,))
 $(eval $(call BuildPlugin,yjinglechan,,Jingle Channel,))
-$(eval $(call BuildPlugin,yrtpchan,,RTP Channel and Other Data Helper,))
 $(eval $(call BuildPlugin,yradius,server,RADIUS Client,))
+$(eval $(call BuildPlugin,yrtpchan,,RTP Channel and Other Data Helper,))
 $(eval $(call BuildPlugin,ysigchan,server,SS7/ISDN Protocols - Yate Signalling Library,))
 $(eval $(call BuildPlugin,ysipchan,,SIP Channel,))
-$(eval $(call BuildPlugin,ysockschan,,SOCKS Channel,))
 $(eval $(call BuildPlugin,ysnmpagent,server,SNMP Protocol Agent,,/usr/share/yate/data/NULL-TEAM-MIB.txt /usr/share/yate/data/snmp_mib.conf /usr/share/yate/data/YATE-MIB.txt))
+$(eval $(call BuildPlugin,ysockschan,,SOCKS Channel,))
 $(eval $(call BuildPlugin,ystunchan,,STUN Support,))
-$(eval $(call BuildPlugin,zapcard,server,Zaptel Card Signalling and Data Driver,+zaptel14-libtonezone))
 $(eval $(call BuildPlugin,zlibcompress,,Zlib Compression,+zlib))
+
