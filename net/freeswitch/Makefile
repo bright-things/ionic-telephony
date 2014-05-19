@@ -18,7 +18,7 @@ PKG_VERSION:=1.5.13b
 # The latest FS git hash in PKG_SOURCE_VERSION can be obtained from
 # http://fisheye.freeswitch.org
 #
-FS_WITH_DEFAULT_HEAD:=7dbab7b1c66ad8a9c15418eccfed0bf1b7df1ce1
+FS_WITH_DEFAULT_HEAD:=285e7dc3d048899623fe54ea96dba1fa16649f7b
 PKG_SOURCE_URL:=git://git.$(PKG_NAME).org/$(PKG_NAME).git
 PKG_SOURCE_VERSION:=$(if $(CONFIG_FS_WITH_LATEST_HEAD),$(shell git ls-remote $(PKG_SOURCE_URL) HEAD|cut -f1),$(FS_WITH_DEFAULT_HEAD))
 FS_WITH_DEFAULT_HEAD_SHORT:=$(shell echo $(FS_WITH_DEFAULT_HEAD)|cut -b -7)
@@ -59,6 +59,7 @@ FS_MOD_AVAILABLE:= \
 	bv \
 	callcenter \
 	cdr-csv \
+	cdr-mongodb \
 	cdr-pg-csv \
 	cdr-sqlite \
 	celt \
@@ -114,6 +115,8 @@ FS_MOD_AVAILABLE:= \
 	loopback \
 	lua \
 	managed \
+	memcache \
+	mongo \
 	mp4 \
 	mp4v \
 	native-file \
@@ -452,6 +455,16 @@ ifneq ($(CONFIG_PACKAGE_$(PKG_NAME)-mod-flite),)
 endif
 
 
+ifneq ($(CONFIG_PACKAGE_$(PKG_NAME)-mod-memcache),)
+ $(eval $(call Download/files,memcache,libmemcached-0.32.tar.gz,2f06059803737b6bf6135edfc86db4b3,,downloads/libs/,libs/))
+endif
+
+
+ifneq ($(CONFIG_PACKAGE_$(PKG_NAME)-mod-mongo),)
+ $(eval $(call Download/files,event-mongo,mongo-c-driver-0.92.2.tar.gz,afab25a33abd3f1e0ba79c5a9da92651,downloads/libs/,libs/))
+endif
+
+
 ifneq ($(CONFIG_PACKAGE_$(PKG_NAME)-mod-opus),)
  $(eval $(call Download/files,opus,opus-1.1-p2.tar.gz,5da7cb39925bfb7dd60ea2e810f71357,,downloads/libs/,libs/))
 endif
@@ -640,6 +653,8 @@ define Build/Prepare
 	$(call Prepare/flite)
 	$(call Prepare/json-cdr)
 	$(call Prepare/ldap)
+	$(call Prepare/memcache)
+	$(call Prepare/mongo)
 	$(call Prepare/opus)
 	$(if $(CONFIG_PACKAGE_$(PKG_NAME)-sounds-en-08KHz),$(call Prepare/sounds-en-08KHz))
 	$(if $(CONFIG_PACKAGE_$(PKG_NAME)-sounds-en-16KHz),$(call Prepare/sounds-en-16KHz))
@@ -959,6 +974,7 @@ $(eval $(call BuildPlugin,blacklist,Blacklist,vanilla,,,,))
 $(eval $(call BuildPlugin,bv,BroadVoice 16/32-bit Audio Codec,vanilla,,,,))
 $(eval $(call BuildPlugin,callcenter,Call Center,vanilla,,,,))
 $(eval $(call BuildPlugin,cdr-csv,CSV-CDR Handler,mod,,,,)) # ~/conf
+$(eval $(call BuildPlugin,cdr-mongodb,MongoDB CDR logger,vanilla,,,,))
 $(eval $(call BuildPlugin,cdr-pg-csv,PostgreSQL CDR Handler,vanilla,,,,+coreutils +FS_WITH_POSTGRESQL:libpq @FS_WITH_POSTGRESQL))
 $(eval $(call BuildPlugin,cdr-sqlite,SQLite3 CDR Handler,vanilla,,,,@FS_WITH_SQLITE3))
 $(eval $(call BuildPlugin,celt,CELT Ultra-Low Delay Codec,vanilla,,,,+libogg))
@@ -1013,6 +1029,8 @@ $(eval $(call BuildPlugin,logfile,File Logger,vanilla,,,,))
 $(eval $(call BuildPlugin,loopback,Loopback to Dialplan Endpoint,vanilla,,,,))
 $(eval $(call BuildPlugin,lua,LUA Language Interface,vanilla,,,,))
 $(eval $(call BuildPlugin,managed,Media Switching Software Library,vanilla,,,,+glib2 @BROKEN)) # needs Mono
+$(eval $(call BuildPlugin,memcache,MemCached Interface,vanilla,,,,+libmemcached @BROKEN)) # Req libmemcached
+$(eval $(call BuildPlugin,mongo,A Document-Oriented Database,vanilla,,,,))
 $(eval $(call BuildPlugin,mp4,MP4 File Format Support For Video,vanilla,,,,@BROKEN)) # needs libmp4v2
 $(eval $(call BuildPlugin,mp4v,MP4 CoDec Support For Video,vanilla,,,,))
 $(eval $(call BuildPlugin,native-file,WAV Format Sound Player,vanilla,,,,))
@@ -1081,4 +1099,4 @@ $(eval $(call BuildPlugin,xml-ldap,LDAP-XML Gateway,vanilla,,,,+libsasl2 +PACKAG
 $(eval $(call BuildPlugin,xml-rpc,XML-RPC Interface,vanilla,,,,))
 $(eval $(call BuildPlugin,xml-radius,Radius authentication and authorization,vanilla,,,,+freeradius-client @BROKEN)) # freeradius-client isn't yet supported by OpenWRT.
 $(eval $(call BuildPlugin,xml-scgi,SCGI XML Gateway,vanilla,,,,))
-$(eval $(call BuildPlugin,yaml,YAML langunage,vanilla,,,,+libyaml_hg))
+$(eval $(call BuildPlugin,yaml,YAML langunage,vanilla,,,,+libyaml))
