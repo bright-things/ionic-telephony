@@ -55,6 +55,7 @@ FS_MOD_AVAILABLE:= \
 	amr \
 	amrwb \
 	avmd \
+	basic \
 	blacklist \
 	bv \
 	callcenter \
@@ -612,7 +613,6 @@ CONFIGURE_VARS+= \
 	config_TARGET_READLINE_LIBS="$(TARGET_LDFLAGS) -lreadline -lncurses" \
 	config_TARGET_LIBS="$(TARGET_LDFLAGS) -lpthread -ldl" \
 	config_BUILD_CC="$(HOSTCC)" \
-	config_BUILD_CFLAGS="$(HOST_CFLAGS)" \
 	CC_FOR_BUILD="$(HOSTCC)" \
 	BUILDTOOL_CC="$(HOSTCC)" \
 	BUILDTOOL_CCLD="$(HOSTCC)" \
@@ -970,6 +970,7 @@ $(eval $(call BuildPlugin,alsa,Alsa Endpoint,vanilla,,,,+FS_WITH_ALSA:alsa-lib @
 $(eval $(call BuildPlugin,amr,Adaptive Multi-Rate On Bandwidth Codec,vanilla,,,,))
 $(eval $(call BuildPlugin,amrwb,Wide Band AMR,vanilla,,,,))
 $(eval $(call BuildPlugin,avmd,Advanced Voice Mail Detection,vanilla,,,,))
+$(eval $(call BuildPlugin,basic,BASIC,vanilla,,,,))
 $(eval $(call BuildPlugin,blacklist,Blacklist,vanilla,,,,))
 $(eval $(call BuildPlugin,bv,BroadVoice 16/32-bit Audio Codec,vanilla,,,,))
 $(eval $(call BuildPlugin,callcenter,Call Center,vanilla,,,,))

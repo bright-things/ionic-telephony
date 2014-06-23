@@ -116,7 +116,6 @@ menu "Configuration"
 	Build FreeSWITCH to comply with FHS when placing 
 	files and directories.
 
-
   config FS_WITH_IPV6
     bool "Enable IPV6 support in APR"
     default y
