@@ -998,11 +998,7 @@ $(eval $(call BuildPlugin,directory,Search By Name Directory IVR,vanilla,,,,))
 $(eval $(call BuildPlugin,distributor,Simple Robin-Round Load,vanilla,,,,))
 $(eval $(call BuildPlugin,dptools,Dialplan Tools,vanilla,,,,))
 $(eval $(call BuildPlugin,easyroute,Simple DID Routing,vanilla,,,,))
-<<<<<<< HEAD
 $(eval $(call BuildPlugin,enum,ENUM Routing,,,,,+libldns))
-=======
-$(eval $(call BuildPlugin,enum,ENUM Routing,,,,,+libldns @BROKEN))
->>>>>>> bbddc7adb83b2a53a707cf0370f04d0e456e4666
 $(eval $(call BuildPlugin,erlang-event,Erlang Event Handler,vanilla,,,,+erlang @BROKEN))
 $(eval $(call BuildPlugin,esf,Extra SIP Functionality,vanilla,,,,))
 $(eval $(call BuildPlugin,event-multicast,Multicast Event Handler,vanilla,,,,))
