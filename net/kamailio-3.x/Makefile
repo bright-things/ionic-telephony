@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=kamailio3
 PKG_VERSION:=3.3.7
-PKG_RELEASE:=5
+PKG_RELEASE:=6
 
 PKG_SOURCE_URL:=http://www.kamailio.org/pub/kamailio/$(PKG_VERSION)/src/
 PKG_SOURCE:=kamailio-$(PKG_VERSION)$(PKG_VARIANT)_src.tar.gz
@@ -61,7 +61,6 @@ $(call Package/kamailio3/Default)
 endef
 
 define Package/kamailio3-example/conffiles
-/etc/default/kamailio
 /etc/kamailio/kamailio.cfg
 endef
 
@@ -100,8 +99,6 @@ define Package/kamailio3-example/install
 		$(1)/etc/kamailio/kamailio.cfg
 	$(SED) 's,//lib/kamailio,/usr/lib/kamailio,g' \
 		$(1)/etc/kamailio/kamailio.cfg
-	$(INSTALL_DIR) $(1)/etc/default
-	$(INSTALL_DATA) ./files/kamailio.default $(1)/etc/default/kamailio
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/kamailio.init $(1)/etc/init.d/kamailio
 endef
